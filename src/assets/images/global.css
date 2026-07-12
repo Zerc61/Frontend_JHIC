@@ -1,0 +1,8 @@
+/* Minimal global styles required by main.js */
+html, body, #app {
+  height: 100%;
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  background: #f5f6f8;
+}
+img { max-width: 100%; display: block; }
