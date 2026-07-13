@@ -101,9 +101,9 @@
               <p class="text-sm font-black text-blue-950">
                 {{ item.destination.ticket_price_formatted }}
               </p>
-              <span class="text-[10px] text-slate-400">
-                {{ formatDate(item.added_at) }}
-              </span>
+            <span class="text-[10px] text-slate-400">
+  {{ formatDate(item.created_at) }}
+</span>
             </div>
           </div>
         </div>

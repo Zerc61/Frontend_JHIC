@@ -437,13 +437,15 @@ const fetchEventsPreview = async () => {
 }
 
 // Check wishlist status
+// Check wishlist status
 const checkWishlist = async () => {
   if (!authStore.isLoggedIn) return
   try {
     const res = await api.get(`/api/wishlists/check/${destination.value?.id}`)
-    isWishlisted.value = res.data.is_wishlisted || false
+    isWishlisted.value = res.data.is_wishlisted ?? false
   } catch (err) {
-    // Wishlist might not exist yet, that's fine
+    console.error('Gagal check wishlist:', err)
+    isWishlisted.value = false
   }
 }
 
@@ -455,20 +457,27 @@ const toggleWishlist = async () => {
     return
   }
 
+  // Optimistic UI update
+  const previousState = isWishlisted.value
+  isWishlisted.value = !isWishlisted.value
+
   try {
-    if (isWishlisted.value) {
+    if (previousState) {
+      // Delete from wishlist
       await api.delete(`/api/wishlists/${destination.value.id}`)
-      isWishlisted.value = false
       toast.success('Dihapus dari wishlist')
     } else {
+      // Add to wishlist
       await api.post('/api/wishlists', {
         destination_id: destination.value.id,
       })
-      isWishlisted.value = true
       toast.success('Ditambahkan ke wishlist ❤️')
     }
   } catch (err) {
-    toast.error('Gagal mengubah wishlist')
+    // Revert on error
+    isWishlisted.value = previousState
+    const message = err.response?.data?.message || 'Gagal mengubah wishlist'
+    toast.error(message)
   }
 }
 
