@@ -11,7 +11,7 @@ export default defineConfig({
     },
   },
   server: {
-    port: 3000,
+    port: 5174,
     hmr: { overlay: false },
     headers: {
       "Content-Security-Policy":

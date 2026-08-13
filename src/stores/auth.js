@@ -4,11 +4,12 @@ import api from "@/services/api";
 export const useAuthStore = defineStore("auth", {
   state: () => ({
     user: null,
+    token: localStorage.getItem("auth_token") || null,
     isLoading: false,
   }),
 
   getters: {
-    isLoggedIn: (state) => !!state.user,
+    isLoggedIn: (state) => !!state.token,
     isTourist: (state) => state.user?.role === "tourist",
     isUmkm: (state) => state.user?.role === "umkm",
     isManager: (state) => state.user?.role === "manager",
@@ -23,6 +24,8 @@ export const useAuthStore = defineStore("auth", {
         this.user = res.data.user;
       } catch {
         this.user = null;
+        this.token = null;
+        localStorage.removeItem("auth_token");
       } finally {
         this.isLoading = false;
       }
@@ -34,6 +37,8 @@ export const useAuthStore = defineStore("auth", {
         await api.get("/sanctum/csrf-cookie");
         const res = await api.post("/api/auth/login", credentials);
         this.user = res.data.user;
+        this.token = res.data.token;
+        localStorage.setItem("auth_token", res.data.token);
         return res;
       } finally {
         this.isLoading = false;
@@ -53,9 +58,18 @@ export const useAuthStore = defineStore("auth", {
     async logout() {
       try {
         await api.post("/api/auth/logout");
-        this.user = null;
       } catch (error) {
         console.error("Logout error", error);
+      } finally {
+        this.user = null;
+        this.token = null;
+        localStorage.removeItem("auth_token");
+        // Also clear any lingering session cookie (optional)
+        document.cookie.split(";").forEach(cookie => {
+          const eqPos = cookie.indexOf("=");
+          const name = eqPos > -1 ? cookie.substring(0, eqPos) : cookie;
+          document.cookie = name.trim() + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
+        });
       }
     },
   },

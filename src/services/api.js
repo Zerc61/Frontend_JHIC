@@ -32,6 +32,13 @@ async function getCsrfCookie() {
 
 // Request interceptor
 api.interceptors.request.use(async (config) => {
+  // Ambil token dari localStorage (jika ada)
+  const token = localStorage.getItem("auth_token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  // CSRF protection untuk request non-GET
   if (["post", "put", "patch", "delete"].includes(config.method)) {
     await getCsrfCookie();
     const token = getCookie("XSRF-TOKEN");
@@ -48,6 +55,8 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       console.error("Unauthorized, silakan login lagi.");
+      // Bersihkan token karena kemungkinan expired/revoked
+      localStorage.removeItem("auth_token");
     }
     return Promise.reject(error);
   },
